@@ -121,19 +121,75 @@ interface GlobalMemoryStore {
 const globalStore = global as unknown as GlobalMemoryStore;
 
 if (!globalStore.__inMemoryClassrooms) {
-  globalStore.__inMemoryClassrooms = [];
+  globalStore.__inMemoryClassrooms = [
+    {
+      _id: 'cls_demo_cs101',
+      name: 'CS101: Data Structures & Algorithms',
+      subject: 'Computer Science',
+      code: 'CS101',
+      professorEmail: 'pro@gmail.com',
+      professorName: 'Professor',
+      students: ['student@gmail.com'],
+      createdAt: new Date().toISOString(),
+    }
+  ];
 }
 if (!globalStore.__inMemoryAssignments) {
-  globalStore.__inMemoryAssignments = [];
+  globalStore.__inMemoryAssignments = [
+    {
+      _id: 'asg_demo_101',
+      classroomId: 'cls_demo_cs101',
+      title: 'Assignment 1: Java Basics & OOP',
+      description: 'Write an object-oriented solution demonstrating polymorphism, encapsulation, and unit testing.',
+      dueDate: '2026-12-01',
+      attachments: [],
+      createdAt: new Date().toISOString(),
+    }
+  ];
 }
 if (!globalStore.__inMemorySubmissions) {
   globalStore.__inMemorySubmissions = [];
 }
 if (!globalStore.__inMemoryActivities) {
-  globalStore.__inMemoryActivities = [];
+  globalStore.__inMemoryActivities = [
+    {
+      _id: 'act_demo_101',
+      classroomId: 'cls_demo_cs101',
+      studentEmail: 'student@gmail.com',
+      studentName: 'Student',
+      type: 'question',
+      content: 'How does binary search tree balancing work?',
+      topic: 'Binary Trees',
+      weakConcepts: ['Tree Traversal', 'Balancing'],
+      confidenceScore: 65,
+      aiFeedback: 'Analyzed by Learn X Java Engine',
+      createdAt: new Date().toISOString(),
+    }
+  ];
 }
 if (!globalStore.__inMemoryCodingAssessments) {
-  globalStore.__inMemoryCodingAssessments = [];
+  globalStore.__inMemoryCodingAssessments = [
+    {
+      _id: 'cod_demo_101',
+      classroomId: 'cls_demo_cs101',
+      title: 'Two Sum Problem',
+      description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+      difficulty: 'Easy',
+      tags: ['Array', 'Hash Table'],
+      starterCode: {
+        javascript: 'function twoSum(nums, target) {\n  // Your code here\n  return [0, 1];\n}',
+        python: 'def two_sum(nums, target):\n    # Your code here\n    return [0, 1]',
+        java: 'public class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
+      },
+      testCases: [
+        { input: '[2, 7, 11, 15], 9', expectedOutput: '[0, 1]', isHidden: false },
+        { input: '[3, 2, 4], 6', expectedOutput: '[1, 2]', isHidden: false },
+      ],
+      tabSwitchLimit: 3,
+      timeLimitMinutes: 30,
+      createdAt: new Date().toISOString(),
+    }
+  ];
 }
 if (!globalStore.__inMemoryCodingSubmissions) {
   globalStore.__inMemoryCodingSubmissions = [];

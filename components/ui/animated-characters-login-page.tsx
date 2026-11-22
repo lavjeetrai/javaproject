@@ -309,18 +309,18 @@ function LoginPage() {
         if (res.ok) {
           const userData = await res.json();
           actualRole = userData.role || actualRole;
-        } else if (email.toLowerCase().includes("prof") || email === "lavjeet1@gmail.com") {
+        } else if (email.toLowerCase().includes("prof") || email.toLowerCase().startsWith("pro@") || email === "lavjeet1@gmail.com") {
           actualRole = "professor";
         }
       } catch {
-        if (email.toLowerCase().includes("prof") || email === "lavjeet1@gmail.com") {
+        if (email.toLowerCase().includes("prof") || email.toLowerCase().startsWith("pro@") || email === "lavjeet1@gmail.com") {
           actualRole = "professor";
         }
       }
 
       if (typeof window !== "undefined") {
         localStorage.setItem("userRole", actualRole);
-        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userEmail", email.trim().toLowerCase());
       }
       
       setShowLoader(true);
@@ -342,20 +342,34 @@ function LoginPage() {
     setError("");
     setIsLoading(true);
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword })
       });
 
       const data = await res.json();
-      const role = data?.user?.role || (email.toLowerCase().includes('prof') || email === 'lavjeet1@gmail.com' ? 'professor' : 'student');
+
+      if (!res.ok) {
+        setError(data.error || data.message || "Invalid email or password");
+        setIsLoading(false);
+        return;
+      }
+
+      const role = data?.user?.role || (
+        cleanEmail.includes('prof') || 
+        cleanEmail.startsWith('pro@') || 
+        cleanEmail === 'lavjeet1@gmail.com' ? 'professor' : 'student'
+      );
 
       console.log("✅ Login successful!", data.user);
       if (typeof window !== "undefined") {
         localStorage.setItem("userRole", role);
-        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userEmail", cleanEmail);
       }
       setShowLoader(true);
       
@@ -367,11 +381,43 @@ function LoginPage() {
         }
       }, 2500);
     } catch (err: any) {
-      console.warn("API login error, proceeding with bypass credentials:", err);
-      const role = (email.toLowerCase().includes('prof') || email.toLowerCase().includes('teacher') || email === 'lavjeet1@gmail.com') ? 'professor' : 'student';
+      console.warn("API login network error, checking demo credentials:", err);
+      
+      // Offline fallback for demo accounts
+      if (cleanEmail === 'student@gmail.com') {
+        if (cleanPassword !== '123456') {
+          setError("Invalid password. Please use 123456 for student demo.");
+          setIsLoading(false);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          localStorage.setItem("userRole", "student");
+          localStorage.setItem("userEmail", cleanEmail);
+        }
+        setShowLoader(true);
+        setTimeout(() => router.push("/classroom"), 2500);
+        return;
+      }
+
+      if (cleanEmail === 'pro@gmail.com') {
+        if (cleanPassword !== '123456') {
+          setError("Invalid password. Please use 123456 for professor demo.");
+          setIsLoading(false);
+          return;
+        }
+        if (typeof window !== "undefined") {
+          localStorage.setItem("userRole", "professor");
+          localStorage.setItem("userEmail", cleanEmail);
+        }
+        setShowLoader(true);
+        setTimeout(() => router.push("/dashboard"), 2500);
+        return;
+      }
+
+      const role = (cleanEmail.includes('prof') || cleanEmail.startsWith('pro@') || cleanEmail.includes('teacher') || cleanEmail === 'lavjeet1@gmail.com') ? 'professor' : 'student';
       if (typeof window !== "undefined") {
         localStorage.setItem("userRole", role);
-        localStorage.setItem("userEmail", email || "user@example.com");
+        localStorage.setItem("userEmail", cleanEmail || "user@example.com");
       }
       setShowLoader(true);
       
@@ -581,9 +627,36 @@ function LoginPage() {
             </div>
           ) : (
             <>
-              <div className="text-center mb-10">
+              <div className="text-center mb-6">
                 <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back!</h1>
                 <p className="text-muted-foreground text-sm">Please enter your details</p>
+              </div>
+
+              {/* Quick Demo Credentials */}
+              <div className="mb-6 p-3 bg-white/5 border border-white/10 rounded-xl text-xs space-y-2">
+                <div className="text-muted-foreground font-medium flex items-center justify-between">
+                  <span>Demo Accounts (No Database Required):</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setEmail('student@gmail.com'); setPassword('123456'); setError(''); }}
+                    className="p-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-left transition-all hover:scale-[1.02]"
+                  >
+                    <div className="font-semibold text-xs flex items-center gap-1">🎓 Student</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 truncate">student@gmail.com</div>
+                    <div className="text-[10px] text-blue-300 font-mono">pass: 123456</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEmail('pro@gmail.com'); setPassword('123456'); setError(''); }}
+                    className="p-2.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 text-left transition-all hover:scale-[1.02]"
+                  >
+                    <div className="font-semibold text-xs flex items-center gap-1">👨‍🏫 Professor</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 truncate">pro@gmail.com</div>
+                    <div className="text-[10px] text-purple-300 font-mono">pass: 123456</div>
+                  </button>
+                </div>
               </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

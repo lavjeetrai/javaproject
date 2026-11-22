@@ -22,9 +22,11 @@ async function seed() {
   const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
   // Clear existing instances to prevent unique constraint errors during seed replays
-  await User.deleteMany({ email: { $in: ['lavjeet@gmail.com', 'lavjeet1@gmail.com'] } });
+  await User.deleteMany({ email: { $in: ['student@gmail.com', 'pro@gmail.com', 'lavjeet@gmail.com', 'lavjeet1@gmail.com'] } });
   
   await User.create([
+    { email: 'student@gmail.com', password: '123456', role: 'student', name: 'Student' },
+    { email: 'pro@gmail.com', password: '123456', role: 'professor', name: 'Professor' },
     { email: 'lavjeet@gmail.com', password: '123456', role: 'student', name: 'Lavjeet Student' },
     { email: 'lavjeet1@gmail.com', password: '123456', role: 'professor', name: 'Lavjeet Professor' }
   ]);

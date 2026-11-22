@@ -8,13 +8,11 @@ import {
   GraduationCap, Loader2, Hash, LogOut, Sparkles,
   Mail, FileText, BookMarked, LayoutList,
   Calendar, Paperclip, Upload, Download, ChevronLeft,
-  ClipboardList, Eye, BarChart2, Code2
+  ClipboardList, Eye, BarChart2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import ClassroomBannerHero from '@/components/ui/refer-and-win-banner';
-import FloatingAITabs from '@/components/ui/floating-ai-tabs';
-import { TeacherCodingTab } from '@/components/ui/coding-assessment-teacher-modal';
 
 interface Classroom {
   _id: string;
@@ -173,7 +171,7 @@ function ClassroomDetailModal({
 }: {
   classroom: Classroom; onClose: () => void;
 }) {
-  const [tab, setTab] = useState<'students' | 'assignments' | 'coding'>('assignments');
+  const [tab, setTab] = useState<'students' | 'assignments'>('assignments');
   const [students, setStudents] = useState<StudentDetail[]>([]);
   const [assignments, setAssignments] = useState<AssignmentData[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
@@ -328,17 +326,12 @@ function ClassroomDetailModal({
           {/* Tabs */}
           <div className="flex gap-1 bg-[#1a1a1e] rounded-xl p-1">
             <button onClick={() => setTab('assignments')}
-              className={cn('flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all',
+              className={cn('flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all',
                 tab === 'assignments' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/20' : 'text-[#8a8a8f] hover:text-white')}>
               <ClipboardList className="size-3.5" /> Assignments
             </button>
-            <button onClick={() => setTab('coding')}
-              className={cn('flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all',
-                tab === 'coding' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/20' : 'text-[#8a8a8f] hover:text-white')}>
-              <Code2 className="size-3.5" /> Coding (LeetCode)
-            </button>
             <button onClick={() => setTab('students')}
-              className={cn('flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all',
+              className={cn('flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all',
                 tab === 'students' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/20' : 'text-[#8a8a8f] hover:text-white')}>
               <Users className="size-3.5" /> Students ({classroom.students.length})
             </button>
@@ -515,11 +508,6 @@ function ClassroomDetailModal({
                 </div>
               )}
             </>
-          )}
-
-          {/* ── CODING ASSESSMENTS TAB ── */}
-          {tab === 'coding' && (
-            <TeacherCodingTab classroom={classroom} />
           )}
         </div>
       </div>
@@ -702,13 +690,6 @@ export function ProfessorDashboard() {
 
       {showModal && <CreateClassroomModal onClose={() => setShowModal(false)} onCreated={handleCreated} professorEmail={email} professorName={name} />}
       {selectedClassroom && <ClassroomDetailModal classroom={selectedClassroom} onClose={() => setSelectedClassroom(null)} />}
-      <FloatingAITabs
-        role="professor"
-        userName={name}
-        userEmail={email}
-        activeClassroom={selectedClassroom}
-        classrooms={classrooms}
-      />
     </div>
   );
 }

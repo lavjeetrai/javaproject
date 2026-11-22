@@ -6,12 +6,11 @@ import ClassroomBannerHero from '@/components/ui/refer-and-win-banner';
 import { cn } from '@/lib/utils';
 import {
   Hash, Loader2, BookOpen, Users,
-  Sparkles, X, Calendar, Paperclip,
+  X, Calendar, Paperclip,
   Upload, Download, ClipboardList, ChevronLeft,
-  Check, MessageSquare, Code2, ShieldAlert, Play
+  Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import FloatingAITabs from '@/components/ui/floating-ai-tabs';
 
 interface Classroom {
   _id: string;
@@ -356,164 +355,12 @@ function AssignmentsView({
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Coding Assessments View (Student Side)
-// ──────────────────────────────────────────────────────────────────────────────
-interface StudentCodingAssessment {
-  _id: string;
-  title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  tags: string[];
-  description: string;
-  testCases: any[];
-  timeLimitMinutes?: number;
-  createdAt: string;
-}
-
-function StudentCodingView({
-  classroom, studentEmail, onBack,
-}: {
-  classroom: Classroom; studentEmail: string; onBack: () => void;
-}) {
-  const router = useRouter();
-  const [assessments, setAssessments] = useState<StudentCodingAssessment[]>([]);
-  const [submissions, setSubmissions] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`/api/coding-assessment/list?classroomId=${classroom._id}`)
-      .then(r => r.ok ? r.json() : [])
-      .then(async (data: StudentCodingAssessment[]) => {
-        setAssessments(data);
-        const subMap: Record<string, any> = {};
-        for (const a of data) {
-          try {
-            const res = await fetch(`/api/coding-assessment/submissions?assessmentId=${a._id}`);
-            if (res.ok) {
-              const subData = await res.json();
-              const mySub = (subData.submissions || []).find((s: any) => s.studentEmail === studentEmail);
-              if (mySub) subMap[a._id] = mySub;
-            }
-          } catch {
-            // ignore
-          }
-        }
-        setSubmissions(subMap);
-      })
-      .finally(() => setLoading(false));
-  }, [classroom._id, studentEmail]);
-
-  return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
-
-      {/* Top bar */}
-      <header className="relative z-10 h-14 border-b border-white/[0.06] bg-[#0a0a0a]/80 backdrop-blur-xl flex items-center px-6 gap-3">
-        <button onClick={onBack} className="p-1.5 rounded-lg text-[#8a8a8f] hover:text-white hover:bg-white/5 transition-all cursor-pointer">
-          <ChevronLeft className="size-4" />
-        </button>
-        <span className="flex items-center justify-center size-5 rounded-md bg-amber-500 text-black font-extrabold text-[10px]">
-          &lt;/&gt;
-        </span>
-        <span className="text-white font-semibold text-sm">{classroom.name}</span>
-        <span className="text-[#8a8a8f] text-xs">· Coding Assessments (LeetCode Workspace)</span>
-      </header>
-
-      <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-1 flex items-center gap-2">
-              LeetCode Coding Assessments
-            </h1>
-            <p className="text-[#8a8a8f] text-sm">
-              {classroom.subject} · Real-time code execution with automated anti-cheat proctoring.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold shrink-0">
-            <ShieldAlert className="size-4 text-amber-400" />
-            <span>Anti-Cheat Tab Detection Active</span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-16"><Loader2 className="size-6 text-amber-400 animate-spin" /></div>
-        ) : assessments.length === 0 ? (
-          <div className="flex flex-col items-center py-20 gap-3 text-center">
-            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-              <Code2 className="size-8 text-[#5a5a5f]" />
-            </div>
-            <p className="text-[#5a5a5f] font-medium">No coding assessments posted yet</p>
-            <p className="text-[#3a3a3f] text-sm max-w-xs">Ask your instructor to post a coding assessment for this classroom.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {assessments.map((a) => {
-              const mySub = submissions[a._id];
-              const isViolated = mySub?.autoSubmitted;
-              const isPassed = mySub?.status === 'Accepted';
-
-              return (
-                <div key={a._id} className="bg-[#111115] border border-white/[0.06] rounded-2xl p-5 hover:border-white/[0.12] transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div className="space-y-2 flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h3 className="text-white font-bold text-base truncate">{a.title}</h3>
-                      <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold border',
-                        a.difficulty === 'Easy' && 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-                        a.difficulty === 'Medium' && 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-                        a.difficulty === 'Hard' && 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-                      )}>
-                        {a.difficulty}
-                      </span>
-
-                      {/* Status pill */}
-                      {isViolated ? (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-semibold animate-pulse">
-                          <ShieldAlert className="size-3" /> Auto-Submitted (Tab Switched)
-                        </span>
-                      ) : isPassed ? (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-                          <Check className="size-3" /> Solved
-                        </span>
-                      ) : mySub ? (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium">
-                          Attempted ({mySub.passedTestCases}/{mySub.totalTestCases})
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#8a8a8f]">
-                      <span>{a.testCases?.length || 0} Test Cases</span>
-                      <span>·</span>
-                      <span>Languages: JS, Python, Java</span>
-                      <span>·</span>
-                      <span className="text-amber-400/90 font-medium">⚠️ Tab switch will auto-submit</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => router.push(`/coding-assessment/${a._id}`)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold text-xs shadow-lg shadow-amber-950/30 transition-all shrink-0 cursor-pointer"
-                  >
-                    <span>{mySub ? 'View / Re-Open in IDE' : 'Solve Challenge in LeetCode IDE'}</span>
-                    <Play className="size-3.5 fill-black" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Classroom Banner (with Coding & Assignments buttons)
+// Classroom Banner (with Assignments button)
 // ──────────────────────────────────────────────────────────────────────────────
 function ClassroomBanner({
-  classroom, onLeave, onShowAssignments, onShowCoding,
+  classroom, onLeave, onShowAssignments,
 }: {
-  classroom: Classroom; onLeave: () => void; onShowAssignments: () => void; onShowCoding: () => void;
+  classroom: Classroom; onLeave: () => void; onShowAssignments: () => void;
 }) {
   return (
     <div className="fixed top-0 left-64 right-0 z-30 flex items-center gap-3 px-6 py-2.5 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/[0.06]">
@@ -523,15 +370,9 @@ function ClassroomBanner({
         <span className="text-[#8a8a8f] text-xs truncate hidden sm:inline">· {classroom.subject}</span>
       </div>
 
-      {/* Coding Assessments (LeetCode) button */}
-      <button onClick={onShowCoding}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold hover:bg-amber-500/20 transition-all cursor-pointer">
-        <Code2 className="size-3" /> Coding (LeetCode)
-      </button>
-
       {/* Assignments button */}
       <button onClick={onShowAssignments}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium hover:bg-indigo-500/20 transition-all cursor-pointer">
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium hover:bg-indigo-500/20 transition-all">
         <ClipboardList className="size-3" /> Assignments
       </button>
 
@@ -540,7 +381,7 @@ function ClassroomBanner({
         <span className="text-blue-300 font-mono font-bold text-xs">{classroom.code}</span>
       </div>
       <button onClick={onLeave} title="Back to classrooms"
-        className="p-1.5 rounded-lg text-[#5a5a5f] hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer">
+        className="p-1.5 rounded-lg text-[#5a5a5f] hover:text-red-400 hover:bg-red-500/10 transition-all">
         <X className="size-3.5" />
       </button>
     </div>
@@ -557,7 +398,7 @@ export default function ClassroomPage() {
   const [studentName, setStudentName] = useState('');
   const [activeClassroom, setActiveClassroom] = useState<Classroom | null>(null);
   const [allClassrooms, setAllClassrooms] = useState<Classroom[]>([]);
-  const [view, setView] = useState<'loading' | 'home' | 'chat' | 'assignments' | 'coding'>('loading');
+  const [view, setView] = useState<'loading' | 'home' | 'chat' | 'assignments'>('loading');
 
   const fetchStudentClassrooms = useCallback(async (email: string): Promise<Classroom[]> => {
     try {
@@ -610,55 +451,18 @@ export default function ClassroomPage() {
 
   if (view === 'home') {
     return (
-      <>
-        <ClassroomHome classrooms={allClassrooms} studentEmail={studentEmail} onEnter={handleEnterClassroom} onJoined={handleJoinedNew} />
-        <FloatingAITabs
-          role="student"
-          userName={studentName}
-          userEmail={studentEmail}
-          activeClassroom={null}
-          classrooms={allClassrooms}
-        />
-      </>
+      <ClassroomHome classrooms={allClassrooms} studentEmail={studentEmail} onEnter={handleEnterClassroom} onJoined={handleJoinedNew} />
     );
   }
 
   if (view === 'assignments' && activeClassroom) {
     return (
-      <>
-        <AssignmentsView
-          classroom={activeClassroom}
-          studentEmail={studentEmail}
-          studentName={studentName}
-          onBack={() => setView('chat')}
-        />
-        <FloatingAITabs
-          role="student"
-          userName={studentName}
-          userEmail={studentEmail}
-          activeClassroom={activeClassroom}
-          classrooms={allClassrooms}
-        />
-      </>
-    );
-  }
-
-  if (view === 'coding' && activeClassroom) {
-    return (
-      <>
-        <StudentCodingView
-          classroom={activeClassroom}
-          studentEmail={studentEmail}
-          onBack={() => setView('chat')}
-        />
-        <FloatingAITabs
-          role="student"
-          userName={studentName}
-          userEmail={studentEmail}
-          activeClassroom={activeClassroom}
-          classrooms={allClassrooms}
-        />
-      </>
+      <AssignmentsView
+        classroom={activeClassroom}
+        studentEmail={studentEmail}
+        studentName={studentName}
+        onBack={() => setView('chat')}
+      />
     );
   }
 
@@ -670,7 +474,6 @@ export default function ClassroomPage() {
           classroom={activeClassroom}
           onLeave={handleLeaveClassroom}
           onShowAssignments={() => setView('assignments')}
-          onShowCoding={() => setView('coding')}
         />
       )}
       <div className="pt-10">
@@ -681,13 +484,6 @@ export default function ClassroomPage() {
           studentName={studentName}
         />
       </div>
-      <FloatingAITabs
-        role="student"
-        userName={studentName}
-        userEmail={studentEmail}
-        activeClassroom={activeClassroom}
-        classrooms={allClassrooms}
-      />
     </div>
   );
 }

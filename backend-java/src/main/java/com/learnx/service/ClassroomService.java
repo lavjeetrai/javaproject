@@ -18,9 +18,10 @@ public class ClassroomService {
             "CS101: Computer Science Fundamentals",
             "Computer Science",
             "CS101",
-            "professor@example.com",
-            "Dr. Alan Turing"
+            "pro@gmail.com",
+            "Professor"
         );
+        sample.getStudents().add("student@gmail.com");
         sample.getStudents().add("student@example.com");
         classrooms.put(sample.get_id(), sample);
     }
